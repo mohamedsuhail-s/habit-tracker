@@ -13,6 +13,7 @@ import { MonthlyView } from './components/MonthlyView';
 import { YearlyView } from './components/YearlyView';
 import { ManageView } from './components/ManageView';
 import { HabitModal } from './components/HabitModal';
+import { MobileNav } from './components/MobileNav';
 
 export const App: React.FC = () => {
   const {
@@ -59,7 +60,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0D1016] dark:bg-[#0D1016] light:bg-[#F8FAFC] text-slate-100 dark:text-slate-100 light:text-slate-900 font-sans selection:bg-[#CC8066] selection:text-white transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-[#0E0E10] dark:bg-[#0E0E10] light:bg-[#F8FAFC] text-slate-100 dark:text-slate-100 light:text-slate-900 font-sans selection:bg-[#818CF8] selection:text-white transition-colors duration-300">
       
       {/* Navigation Header */}
       <Navbar
@@ -85,23 +86,23 @@ export const App: React.FC = () => {
         onToggleTheme={toggleTheme}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pb-16 space-y-8">
+      {/* Main Content Area with Bottom Padding for Mobile Nav */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pb-24 md:pb-16 space-y-6 sm:space-y-8">
         
         {/* Top Summary Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard
-            title="Cognitive Flow Rate"
+            title="Liquidity Rate"
             value={`${stats.todayCompletionRate}%`}
-            subtitle={`${stats.completedTodayCount} of ${stats.totalActiveHabits} protocols done`}
+            subtitle={`${stats.completedTodayCount} of ${stats.totalActiveHabits} done`}
             icon="CheckCircle2"
-            color="terracotta"
+            color="indigo"
           />
 
           <StatCard
-            title="Peak Neural Streak"
-            value={`${stats.maxCurrentStreak} Days`}
-            subtitle="Current longest consecutive streak"
+            title="Max Streak"
+            value={`${stats.maxCurrentStreak}d`}
+            subtitle="Longest consecutive streak"
             icon="Flame"
             color="amber"
           />
@@ -109,15 +110,15 @@ export const App: React.FC = () => {
           <StatCard
             title="Total Checks"
             value={stats.totalAllTimeCompletions}
-            subtitle="All-time completed habit checkmarks"
+            subtitle="All-time checkmarks"
             icon="Trophy"
             color="emerald"
           />
 
           <StatCard
-            title="Active Protocols"
+            title="Active Habits"
             value={stats.totalActiveHabits}
-            subtitle="Routines tracked daily & weekly"
+            subtitle="Routines tracked daily"
             icon="Target"
             color="cyan"
           />
@@ -177,14 +178,20 @@ export const App: React.FC = () => {
         initialData={editingHabit}
       />
 
+      {/* Fixed Bottom Navigation Bar for Mobile Devices */}
+      <MobileNav
+        currentView={currentView}
+        onViewChange={setCurrentView}
+      />
+
       {/* Footer */}
-      <footer className="glass-panel border-t border-slate-200 dark:border-slate-800/80 py-6 text-center text-xs text-slate-500">
+      <footer className="glass-panel border-t border-slate-200 dark:border-[#27272A]/80 py-6 mb-16 md:mb-0 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono">
           <div>
-            <span className="font-bold text-slate-700 dark:text-slate-300">NeuroSync Pro</span> — Master Your Mind | React & TypeScript Habit Tracker
+            <span className="font-bold text-slate-700 dark:text-slate-300">HabitFlow Pro</span> — Capital Overview & Matrix
           </div>
           <div>
-            Built with React, TypeScript, Tailwind CSS, & Recharts
+            React, TypeScript, Tailwind CSS, & Recharts
           </div>
         </div>
       </footer>

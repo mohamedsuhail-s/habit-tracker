@@ -79,40 +79,40 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
 
       {/* Monthly Navigation Header */}
-      <div className="glass-panel rounded-2xl p-6 border border-slate-200 dark:border-[#27272A] flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="glass-panel rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-[#27272A] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2 text-[#818CF8] font-mono font-semibold text-xs uppercase tracking-wider mb-1">
             <Calendar className="w-4 h-4" />
-            <span>Monthly Liquidity Heatmap</span>
+            <span>Monthly Consistency Heatmap</span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             {getMonthName(currentMonth)} {currentYear}
           </h2>
           <p className="text-slate-500 dark:text-[#A1A1AA] text-xs mt-0.5">
-            Visualize your daily habit completion intensity and global aggregated metrics.
+            Visualize your daily habit completion intensity.
           </p>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="px-4 py-2 rounded-xl bg-[#818CF8]/10 border border-[#818CF8]/30 flex items-center space-x-2 text-[#818CF8] font-mono">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-xs font-bold">{monthlyConsistency}% Global Consistency</span>
+        <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-4">
+          <div className="px-3 sm:px-4 py-2 rounded-xl bg-[#818CF8]/10 border border-[#818CF8]/30 flex items-center space-x-1.5 text-[#818CF8] font-mono">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="text-xs font-bold">{monthlyConsistency}% Consistency</span>
           </div>
 
           <div className="flex items-center space-x-1 bg-slate-100 dark:bg-[#18181C] border border-slate-200 dark:border-[#27272A] rounded-xl p-1.5 font-mono">
             <button
               onClick={handlePrevMonth}
-              className="p-2 text-slate-500 dark:text-[#A1A1AA] hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#27272A] rounded-lg transition-colors"
+              className="p-2 text-slate-500 dark:text-[#A1A1AA] hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#27272A] rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
               title="Previous Month"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-2 text-slate-500 dark:text-[#A1A1AA] hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#27272A] rounded-lg transition-colors"
+              className="p-2 text-slate-500 dark:text-[#A1A1AA] hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-[#27272A] rounded-lg transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center"
               title="Next Month"
             >
               <ChevronRight className="w-5 h-5" />
@@ -122,28 +122,28 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
       </div>
 
       {/* 30-Day Line Chart */}
-      <div className="glass-panel rounded-2xl p-6 border border-slate-200 dark:border-[#27272A]">
+      <div className="glass-panel rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-[#27272A]">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <TrendingUp className="w-5 h-5 text-[#818CF8]" />
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Operational Trajectory (30 Days)</h3>
+            <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">Daily Trajectory Trend (30 Days)</h3>
           </div>
-          <span className="font-mono text-xs text-slate-500 dark:text-[#A1A1AA]">Yield Rate Percentage</span>
+          <span className="font-mono text-[11px] sm:text-xs text-slate-500 dark:text-[#A1A1AA]">Rate %</span>
         </div>
 
-        <div className="h-56 w-full">
+        <div className="h-44 sm:h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <XAxis 
                 dataKey="label" 
                 stroke="#A1A1AA" 
-                fontSize={11} 
+                fontSize={10} 
                 tickLine={false} 
                 axisLine={false} 
               />
               <YAxis 
                 stroke="#A1A1AA" 
-                fontSize={11} 
+                fontSize={10} 
                 tickLine={false} 
                 axisLine={false}
                 domain={[0, 100]}
@@ -173,36 +173,35 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
         </div>
       </div>
 
-      {/* Calendar Heatmap Grid */}
-      <div className="glass-panel rounded-2xl p-6 border border-slate-200 dark:border-[#27272A]">
+      {/* Calendar Heatmap Grid (Mobile-Scaled) */}
+      <div className="glass-panel rounded-2xl p-3.5 sm:p-6 border border-slate-200 dark:border-[#27272A]">
         
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-[#27272A]">
-          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-            <Activity className="w-5 h-5 text-[#818CF8]" />
-            <span>Operational Density Matrix</span>
+        <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-slate-200 dark:border-[#27272A]">
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-[#818CF8]" />
+            <span>Intensity Matrix</span>
           </h3>
 
-          <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-[#A1A1AA] font-mono">
+          <div className="flex items-center space-x-1.5 text-[10px] sm:text-xs text-slate-500 dark:text-[#A1A1AA] font-mono">
             <span>Less</span>
-            <div className="w-3 h-3 rounded bg-slate-200 dark:bg-[#18181C] border border-slate-300 dark:border-[#27272A]" />
-            <div className="w-3 h-3 rounded bg-[#818CF8]/20 border border-[#818CF8]/40" />
-            <div className="w-3 h-3 rounded bg-[#818CF8]/60" />
-            <div className="w-3 h-3 rounded bg-[#818CF8]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-slate-200 dark:bg-[#18181C] border border-slate-300 dark:border-[#27272A]" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[#818CF8]/20 border border-[#818CF8]/40" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded bg-[#818CF8]" />
             <span>More</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 text-center font-mono text-xs font-bold text-slate-500 dark:text-[#A1A1AA] mb-3">
-          <div>MON</div>
-          <div>TUE</div>
-          <div>WED</div>
-          <div>THU</div>
-          <div>FRI</div>
-          <div>SAT</div>
-          <div>SUN</div>
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center font-mono text-[10px] sm:text-xs font-bold text-slate-500 dark:text-[#A1A1AA] mb-2 sm:mb-3">
+          <div>M</div>
+          <div>T</div>
+          <div>W</div>
+          <div>T</div>
+          <div>F</div>
+          <div>S</div>
+          <div>S</div>
         </div>
 
-        <div className="grid grid-cols-7 gap-2.5">
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-2.5">
           {calendarGrid.map((cell, idx) => {
             const dayRecord = completions[cell.dateStr] || {};
             const count = habits.filter(h => !!dayRecord[h.id]).length;
@@ -212,23 +211,23 @@ export const MonthlyView: React.FC<MonthlyViewProps> = ({
             return (
               <div
                 key={idx}
-                className={`relative min-h-[70px] rounded-2xl p-2.5 border transition-all duration-200 flex flex-col justify-between ${
+                className={`relative min-h-[50px] sm:min-h-[70px] rounded-xl sm:rounded-2xl p-1.5 sm:p-2.5 border transition-all duration-200 flex flex-col justify-between ${
                   !cell.inCurrentMonth ? 'opacity-25' : ''
                 } ${intensityClass} ${cell.isToday ? 'ring-2 ring-[#818CF8]' : ''}`}
               >
                 <div className="flex items-center justify-between font-mono">
-                  <span className="text-xs font-bold">{cell.dayNumber}</span>
+                  <span className="text-[10px] sm:text-xs font-bold">{cell.dayNumber}</span>
                   {cell.isToday && (
-                    <span className="text-[9px] uppercase font-black tracking-wider bg-[#818CF8] text-white px-1.5 py-0.2 rounded-md">
+                    <span className="hidden sm:inline text-[9px] uppercase font-black tracking-wider bg-[#818CF8] text-white px-1.5 py-0.2 rounded-md">
                       Today
                     </span>
                   )}
                 </div>
 
                 {cell.inCurrentMonth && (
-                  <div className="mt-2 text-right font-mono">
-                    <span className="text-xs font-extrabold">{count}/{totalActiveHabits}</span>
-                    <div className="text-[10px] opacity-75">{percentage}%</div>
+                  <div className="mt-1 sm:mt-2 text-right font-mono">
+                    <span className="text-[10px] sm:text-xs font-extrabold">{count}/{totalActiveHabits}</span>
+                    <div className="text-[9px] sm:text-[10px] opacity-75 hidden sm:block">{percentage}%</div>
                   </div>
                 )}
               </div>
