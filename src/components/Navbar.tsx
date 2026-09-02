@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import type { ViewMode, HabitCategory } from '../types/habit';
+import { useAuth } from '../context/AuthContext';
 import { 
   CalendarDays, 
   Grid3X3, 
@@ -14,7 +15,10 @@ import {
   TrendingUp,
   Flame,
   Sun,
-  Moon
+  Moon,
+  LogIn,
+  LogOut,
+  User as UserIcon
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -61,6 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user, signInWithGoogle, logout } = useAuth();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,11 +109,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                     PRO
                   </span>
                 </div>
-                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-[#A1A1AA]">Capital Overview & Matrix</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-[#A1A1AA]">Capital Overview & Firebase Sync</p>
               </div>
             </div>
 
-            {/* Mobile Header Theme & Add Button */}
+            {/* Mobile Actions */}
             <div className="flex items-center space-x-2 sm:hidden">
               <button
                 onClick={onToggleTheme}
@@ -128,9 +133,42 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Desktop & Tablet Controls Badges */}
+          {/* Desktop & Mobile User Auth + Controls */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             
+            {/* Firebase Auth User Profile Badge or Login Button */}
+            {user ? (
+              <div className="flex items-center space-x-2 bg-slate-100 dark:bg-[#18181C] border border-slate-200 dark:border-[#27272A] rounded-xl p-1 pr-2 sm:pr-3">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName || 'User'} className="w-7 h-7 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-7 h-7 rounded-lg bg-[#818CF8]/20 text-[#818CF8] flex items-center justify-center font-bold text-xs">
+                    <UserIcon className="w-4 h-4" />
+                  </div>
+                )}
+                <span className="font-mono text-xs font-semibold text-slate-700 dark:text-slate-200 truncate max-w-[90px] sm:max-w-[120px]">
+                  {user.displayName || user.email?.split('@')[0]}
+                </span>
+                <button
+                  onClick={logout}
+                  title="Sign Out of Firebase"
+                  className="p-1 text-slate-400 hover:text-rose-500 rounded-md transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={signInWithGoogle}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-[#18181C] border border-slate-200 dark:border-[#27272A] text-slate-700 dark:text-slate-200 hover:border-[#818CF8] transition-all font-mono text-xs font-semibold"
+                title="Sign in with Google to sync habits to Cloud Firestore"
+              >
+                <LogIn className="w-3.5 h-3.5 text-[#818CF8]" />
+                <span>Google Sync</span>
+              </button>
+            )}
+
+            {/* Streak Badge */}
             <div className="flex items-center space-x-1.5 sm:space-x-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400 font-mono text-xs font-bold">
               <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-500 dark:fill-amber-400 animate-pulse" />
               <span>{maxStreak}d Streak</span>
@@ -158,7 +196,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
 
-            {/* Action Tools */}
+            {/* Data Tools */}
             <div className="flex items-center bg-slate-100 dark:bg-[#18181C] border border-slate-200 dark:border-[#27272A] rounded-xl p-1">
               <button 
                 onClick={onExport} 
@@ -208,7 +246,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         </div>
 
-        {/* View Switcher Tabs (Desktop/Tablet) */}
+        {/* View Switcher Tabs & Filters */}
         <div className="mt-3 sm:mt-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-3 sm:pt-4 border-t border-slate-200 dark:border-[#27272A]">
           
           <nav className="hidden md:flex items-center space-x-1 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
@@ -231,7 +269,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Search & Category Filters (Responsive Mobile & Desktop) */}
           {['daily', 'weekly', 'manage'].includes(currentView) && (
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
               

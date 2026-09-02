@@ -2,12 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Habit, CompletionMap, HabitCategory } from '../types/habit';
 import { INITIAL_HABITS, generateInitialCompletions } from '../utils/mockData';
 import { getTodayStr } from '../utils/dateUtils';
+import { useAuth } from '../context/AuthContext';
+import { db } from '../config/firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import confetti from 'canvas-confetti';
 
 const STORAGE_KEY_HABITS = 'habit_tracker_habits_v2';
 const STORAGE_KEY_COMPLETIONS = 'habit_tracker_completions_v2';
 
 export function useHabits() {
+  const { user } = useAuth();
+
   const [habits, setHabits] = useState<Habit[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_HABITS);
@@ -35,16 +40,56 @@ export function useHabits() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeCategory, setActiveCategory] = useState<HabitCategory | 'All'>('All');
 
-  // Save to LocalStorage on change
+  // Firestore Real-Time Listener when User is Logged In
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_HABITS, JSON.stringify(habits));
-  }, [habits]);
+    if (!user) return;
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_COMPLETIONS, JSON.stringify(completions));
-  }, [completions]);
+    const userDocRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (Array.isArray(data.habits)) {
+          setHabits(data.habits);
+        }
+        if (data.completions && typeof data.completions === 'object') {
+          setCompletions(data.completions);
+        }
+      } else {
+        // First login: sync current demo/local data to Firestore for user
+        setDoc(userDocRef, {
+          habits,
+          completions,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true }).catch(err => console.warn('Firestore initial sync notice:', err));
+      }
+    }, (error) => {
+      console.warn('Firestore listener warning (using local backup mode):', error);
+    });
 
-  // Toggle habit completion for a given date (defaults to today)
+    return () => unsubscribe();
+  }, [user]);
+
+  // Helper to persist state to LocalStorage and Firestore
+  const persistState = useCallback((newHabits: Habit[], newCompletions: CompletionMap) => {
+    setHabits(newHabits);
+    setCompletions(newCompletions);
+
+    // Save to LocalStorage
+    localStorage.setItem(STORAGE_KEY_HABITS, JSON.stringify(newHabits));
+    localStorage.setItem(STORAGE_KEY_COMPLETIONS, JSON.stringify(newCompletions));
+
+    // Save to Firestore if authenticated
+    if (user) {
+      const userDocRef = doc(db, 'users', user.uid);
+      setDoc(userDocRef, {
+        habits: newHabits,
+        completions: newCompletions,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true }).catch(err => console.warn('Firestore save notice:', err));
+    }
+  }, [user]);
+
+  // Toggle habit completion for a date
   const toggleHabitCompletion = useCallback((habitId: string, targetDateStr?: string) => {
     const dateStr = targetDateStr || getTodayStr();
 
@@ -58,12 +103,12 @@ export function useHabits() {
         delete dayRecord[habitId];
       }
 
-      const updated = {
+      const updatedCompletions = {
         ...prev,
         [dateStr]: dayRecord,
       };
 
-      // Check if all active habits completed for today and trigger confetti animation
+      // Confetti celebration if today completed all active habits
       if (dateStr === getTodayStr() && nextStatus) {
         const activeCount = habits.filter(h => !h.archived).length;
         const completedCount = Object.keys(dayRecord).length;
@@ -75,14 +120,17 @@ export function useHabits() {
               origin: { y: 0.6 }
             });
           } catch (e) {
-            // ignore if confetti fails
+            // ignore
           }
         }
       }
 
-      return updated;
+      // Persist changes
+      persistState(habits, updatedCompletions);
+
+      return updatedCompletions;
     });
-  }, [habits]);
+  }, [habits, persistState]);
 
   const addHabit = useCallback((newHabitData: Omit<Habit, 'id' | 'createdAt' | 'archived'>) => {
     const id = `habit-${Date.now()}`;
@@ -92,34 +140,33 @@ export function useHabits() {
       archived: false,
       createdAt: getTodayStr(),
     };
-    setHabits(prev => [...prev, newHabit]);
-  }, []);
+    const updatedHabits = [...habits, newHabit];
+    persistState(updatedHabits, completions);
+  }, [habits, completions, persistState]);
 
   const editHabit = useCallback((id: string, updatedData: Partial<Habit>) => {
-    setHabits(prev => prev.map(h => (h.id === id ? { ...h, ...updatedData } : h)));
-  }, []);
+    const updatedHabits = habits.map(h => (h.id === id ? { ...h, ...updatedData } : h));
+    persistState(updatedHabits, completions);
+  }, [habits, completions, persistState]);
 
   const deleteHabit = useCallback((id: string) => {
-    setHabits(prev => prev.filter(h => h.id !== id));
-    setCompletions(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(date => {
-        if (updated[date][id]) {
-          const dayRecord = { ...updated[date] };
-          delete dayRecord[id];
-          updated[date] = dayRecord;
-        }
-      });
-      return updated;
+    const updatedHabits = habits.filter(h => h.id !== id);
+    const updatedCompletions = { ...completions };
+    Object.keys(updatedCompletions).forEach(date => {
+      if (updatedCompletions[date][id]) {
+        const dayRecord = { ...updatedCompletions[date] };
+        delete dayRecord[id];
+        updatedCompletions[date] = dayRecord;
+      }
     });
-  }, []);
+    persistState(updatedHabits, updatedCompletions);
+  }, [habits, completions, persistState]);
 
   const resetDemoData = useCallback(() => {
-    setHabits(INITIAL_HABITS);
-    setCompletions(generateInitialCompletions());
-    localStorage.removeItem(STORAGE_KEY_HABITS);
-    localStorage.removeItem(STORAGE_KEY_COMPLETIONS);
-  }, []);
+    const freshHabits = INITIAL_HABITS;
+    const freshCompletions = generateInitialCompletions();
+    persistState(freshHabits, freshCompletions);
+  }, [persistState]);
 
   const exportData = useCallback(() => {
     const data = {
@@ -140,15 +187,14 @@ export function useHabits() {
     try {
       const parsed = JSON.parse(jsonString);
       if (Array.isArray(parsed.habits) && typeof parsed.completions === 'object') {
-        setHabits(parsed.habits);
-        setCompletions(parsed.completions);
+        persistState(parsed.habits, parsed.completions);
         return true;
       }
     } catch (e) {
       console.error('Invalid JSON import', e);
     }
     return false;
-  }, []);
+  }, [persistState]);
 
   // Filtered habits
   const filteredHabits = habits.filter(habit => {
